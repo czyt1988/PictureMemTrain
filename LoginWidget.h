@@ -12,9 +12,16 @@ class LoginWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit LoginWidget(QWidget *parent = 0);
+    explicit LoginWidget(QWidget *parent = nullptr);
     ~LoginWidget();
-
+    QString getMatchingNum() const;
+    QString getExpNum() const;
+    QString getAge() const;
+    QString getShortName() const;
+signals:
+    void ok();
+private slots:
+    void on_pushButtonOK_clicked();
 private:
     Ui::LoginWidget *ui;
 };

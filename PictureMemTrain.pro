@@ -25,10 +25,37 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        MainWindow.cpp
+        MainWindow.cpp \
+    FramelessHelper.cpp \
+    MessageBoxDialog.cpp \
+    LoginWidget.cpp \
+    TrainTypeSelectWidget.cpp \
+    TrainWidget.cpp \
+    PMTPixmapWidget.cpp \
+    PMTTestValue.cpp \
+    TrainController.cpp
 
 HEADERS += \
-        MainWindow.h
+        MainWindow.h \
+    FramelessHelper.h \
+    MessageBoxDialog.h \
+    LoginWidget.h \
+    TrainTypeSelectWidget.h \
+    TrainWidget.h \
+    Globals.h \
+    PMTPixmapWidget.h \
+    PMTTestValue.h \
+    TrainController.h
 
 FORMS += \
-        MainWindow.ui
+        MainWindow.ui \
+    MessageBoxDialog.ui \
+    LoginWidget.ui \
+    TrainTypeSelectWidget.ui \
+    TrainWidget.ui
+
+RESOURCES += \
+    res.qrc
+
+
+include(./3rdparty/xlsx/qtxlsx.pri)

@@ -1,1 +1,8 @@
-<RCC/>
+<RCC>
+    <qresource prefix="/pic">
+        <file>res/pic/quit.svg</file>
+        <file>res/pic/cancel.svg</file>
+        <file>res/pic/ok.svg</file>
+        <file>res/pic/back-n.svg</file>
+    </qresource>
+</RCC>
