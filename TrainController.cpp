@@ -47,27 +47,12 @@ void TrainController::setShortName(const QString &v)
 {
     m_shortName = v;
 }
-void TrainController::makeProject(const PMT::TrainType &trainType,int tarinPicCount,int startTestPicIndex)
+void TrainController::makeProject(int tarinPicCount,int startTestPicIndex)
 {
     resetTrainPram();
     m_totalTrainPicCount = tarinPicCount;
     m_startTestPicIndex = startTestPicIndex;
     buildPicGroup2();
-//    switch(trainType)
-//    {
-//    case PMT::TestType1:
-//    case PMT::TestType2:
-//        resetTrainPram();
-//        break;
-//    case PMT::FormalType1:
-//    case PMT::FormalType2:
-//    case PMT::FormalType3:
-//        resetTrainPram();
-//        break;
-//    default:
-//        resetTrainPram();
-//        break;
-//    }
 }
 
 QPixmap TrainController::getPixmap(uint index,GroupType group) const

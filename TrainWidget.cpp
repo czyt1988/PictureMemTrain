@@ -92,7 +92,7 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType)
     default:
         break;
     }
-    m_controller.makeProject(trainType,trainPicCount,startTestIndex);
+    m_controller.makeProject(trainPicCount,startTestIndex);
     //重置图片
     resetPictureInGroup1();
 }

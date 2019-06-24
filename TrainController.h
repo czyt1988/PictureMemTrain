@@ -23,7 +23,7 @@ public:
     TrainController(QObject* par = nullptr);
     static QString getPicResourcesPath();
     //生成一个训练方案
-    void makeProject(const PMT::TrainType &trainType,int tarinPicCount,int startTestPicIndex);
+    void makeProject(int tarinPicCount, int startTestPicIndex);
     //获取图片
     QPixmap getPixmap(uint index,GroupType group = Group1) const;
     QPixmap getPixmap(const QString& name) const;
