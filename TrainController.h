@@ -61,6 +61,8 @@ public:
     //保存结果
     void saveResult();
     void savePicTestOrder(const QList<int>& los);
+    //移除原来的照片，插入新的照片
+    void removeAndResetPicture();
 private:
     void initResources();
     //建立图片组

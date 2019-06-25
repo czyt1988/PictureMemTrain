@@ -93,7 +93,8 @@ private:
     PMTPixmapWidget* m_currentClicked;
     QList<LocationTestValue> m_locationTestValues;///< 存放位置测试的内容
     int m_currentLocationTestIndex;///< 记录位置测试的索引
-    QList<int> m_trainOrder;///< 记录训练的顺序
+    QList<QPair<int,int> > m_trainOrder;///< 记录训练的顺序
+    int m_trainOrderIndex;///< 训练的索引
 };
 
 #endif // TRAINWIDGET_H

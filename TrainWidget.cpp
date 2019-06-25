@@ -16,6 +16,8 @@ TrainWidget::TrainWidget(QWidget *parent) :
   ,m_currentClicked(nullptr)
 {
     ui->setupUi(this);
+    m_trainOrder = PMT::TrainInfo().getTaskList();
+    m_trainOrderIndex = 0;
     ui->labelIllustration->hide();
     ui->pushButtonNo->hide();
     ui->pushButtonOK->hide();
@@ -75,23 +77,27 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType)
         startTestIndex = 0;
         break;
     case PMT::FormalType1:
-        trainPicCount = 4;
-        startTestIndex = 1;
-        m_trainOrder.append(4);
+        m_trainOrder = PMT::TrainInfo().getTaskList();
+        m_trainOrderIndex = 0;
+        trainPicCount = m_trainOrder.first().first;
+        startTestIndex = m_trainOrder.first().second;
         break;
     case PMT::FormalType2:
-        trainPicCount = 5;
-        startTestIndex = 2;
-        m_trainOrder.append(5);
+        m_trainOrder = PMT::TrainInfo().getTaskList();
+        m_trainOrderIndex = 0;
+        trainPicCount = m_trainOrder.first().first;
+        startTestIndex = m_trainOrder.first().second;
         break;
     case PMT::FormalType3:
-        trainPicCount = 6;
-        startTestIndex = 3;
-        m_trainOrder.append(6);
+        m_trainOrder = PMT::TrainInfo().getTaskList();
+        m_trainOrderIndex = 0;
+        trainPicCount = m_trainOrder.first().first;
+        startTestIndex = m_trainOrder.first().second;
         break;
     default:
         break;
     }
+
     m_controller.makeProject(trainPicCount,startTestIndex);
     //重置图片
     resetPictureInGroup1();
@@ -228,12 +234,15 @@ void TrainWidget::showTestLocation()
         m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickNothing);
         m_picList[i]->repaint();
     }
-    LocationTestValue v = m_locationTestValues[m_currentLocationTestIndex];
-    PMTPixmapWidget* w = m_picList[v.showLocation];
-    w->setShowPicture();
-    w->setPixmap(m_controller.getPixmap(v.picName),v.picName);
-    w->setClickActionMode(PMTPixmapWidget::ClickNothing);
-    qDebug() << "v.showLocation：" << v.showLocation;
+    if(m_currentLocationTestIndex < m_locationTestValues.size())
+    {
+        LocationTestValue v = m_locationTestValues[m_currentLocationTestIndex];
+        PMTPixmapWidget* w = m_picList[v.showLocation];
+        w->setShowPicture();
+        w->setPixmap(m_controller.getPixmap(v.picName),v.picName);
+        w->setClickActionMode(PMTPixmapWidget::ClickNothing);
+        qDebug() << "v.showLocation：" << v.showLocation;
+    }
 }
 /**
  * @brief 重置为测试模式
@@ -300,6 +309,7 @@ void TrainWidget::onFinishPictureMem(const QString &name,QDateTime clickedInTime
         ptr.picDisappearTime = clickedOutTime;
         ptr.testRecordName = QStringLiteral("%1-%2").arg(ptr.testPicCount).arg(ptr.testRange);
         m_controller.appendOneSelRecord(ptr);
+        qDebug() << "ptr.testRecordName:" << ptr.testRecordName;
         if(m_controller.isFinishSelPic())
         {
             //如果此时选图模式结束，就进入突击测试阶段
@@ -425,7 +435,33 @@ void TrainWidget::onFinish()
        PMT::FormalType2 == getTrainType())
     {
         m_controller.saveResult();
-        m_controller.savePicTestOrder(m_trainOrder);
+        ++m_trainOrderIndex;
+        if(m_trainOrderIndex<m_trainOrder.size())
+        {
+            ui->pushButtonNo->hide();
+            ui->pushButtonOK->hide();
+            int trainPicCount = m_trainOrder[m_trainOrderIndex].first;
+            int startTestIndex = m_trainOrder[m_trainOrderIndex].second;
+            m_controller.makeProject(trainPicCount,startTestIndex);
+            //重置图片
+            resetPictureInGroup1();
+        }
+        else
+        {
+            //写入随机顺序
+            QList<int> order;
+            for(int i=0;i<m_trainOrder.size();++i)
+            {
+                order.append(m_trainOrder[i].first);
+            }
+            m_controller.savePicTestOrder(order);
+            m_controller.removeAndResetPicture();
+            emit finish(getTrainType());
+        }
+    }
+    else
+    {
+        emit finish(getTrainType());
     }
 }
 
@@ -491,18 +527,18 @@ void TrainWidget::on_pushButtonOK_clicked()
         qDebug() << "click too more";
         return;
     }
-    m_controller.appendLocationMemTestRecord(true);
-    if(m_controller.isFinishLocationMemTest())
+    if(m_currentLocationTestIndex>=m_locationTestValues.size())
     {
         ui->pushButtonNo->hide();
         ui->pushButtonOK->hide();
-        emit finish(getTrainType());
     }
     else
     {
         ++m_currentLocationTestIndex;
         showTestLocation();
     }
+    //此函数一定要在最后
+    m_controller.appendLocationMemTestRecord(true);
 }
 
 void TrainWidget::on_pushButtonNo_clicked()
@@ -512,16 +548,17 @@ void TrainWidget::on_pushButtonNo_clicked()
         qDebug() << "click too more";
         return;
     }
-    m_controller.appendLocationMemTestRecord(false);
-    if(m_controller.isFinishLocationMemTest())
+
+    if(m_currentLocationTestIndex>=m_locationTestValues.size())
     {
         ui->pushButtonNo->hide();
         ui->pushButtonOK->hide();
-        emit finish(getTrainType());
     }
     else
     {
         ++m_currentLocationTestIndex;
         showTestLocation();
     }
+    //此函数一定要在最后
+    m_controller.appendLocationMemTestRecord(false);
 }

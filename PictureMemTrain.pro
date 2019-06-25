@@ -33,7 +33,8 @@ SOURCES += \
     TrainWidget.cpp \
     PMTPixmapWidget.cpp \
     PMTTestValue.cpp \
-    TrainController.cpp
+    TrainController.cpp \
+    Globals.cpp
 
 HEADERS += \
         MainWindow.h \

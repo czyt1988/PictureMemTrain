@@ -49,6 +49,7 @@ void TrainController::setShortName(const QString &v)
 }
 void TrainController::makeProject(int tarinPicCount,int startTestPicIndex)
 {
+    qDebug() << "makeProject tarinPicCount:" << tarinPicCount << " startTestPicIndex:"<<startTestPicIndex;
     resetTrainPram();
     m_totalTrainPicCount = tarinPicCount;
     m_startTestPicIndex = startTestPicIndex;
@@ -94,6 +95,7 @@ void TrainController::initResources()
 void TrainController::buildPicGroup1()
 {
      m_picNameShowGroup1 = shufflePicName(m_names,m_xnum*m_ynum);
+     qDebug() << " buildPicGroup1 :" << m_picNameShowGroup1;
 }
 
 void TrainController::buildPicGroup2()
@@ -292,9 +294,7 @@ void TrainController::saveResult()
     xlsx.write(m_firstNullRow,COL_PIC_LIST,pics);
     if(!xlsx.save())
     {
-        QTimer::singleShot(10,this,[this](){
-            emit saveResultExcelErr();
-        });
+        emit saveResultExcelErr();
     }
 }
 
@@ -326,11 +326,25 @@ void TrainController::savePicTestOrder(const QList<int> &los)
             str += ",";
         }
     }
-    xlsx.write(m_firstNullRow,COL_PIC_LIST,str);
+    xlsx.write(m_firstNullRow,COL_PIC_LEN_ORDER,str);
     if(!xlsx.save())
     {
         emit saveResultExcelErr();
     }
+}
+
+void TrainController::removeAndResetPicture()
+{
+    int t = m_xnum*m_ynum;
+    for(int i=0;i<m_picNameShowGroup1.size();++i)
+    {
+        if(t < m_nameToPic.size())
+        {
+            m_nameToPic.remove(m_picNameShowGroup1[i]);
+            m_names.removeOne(m_picNameShowGroup1[i]);
+        }
+    }
+    buildPicGroup1();
 }
 
 bool TrainController::isFinishLocationMemTest() const
