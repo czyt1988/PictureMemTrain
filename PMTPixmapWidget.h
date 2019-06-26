@@ -50,9 +50,14 @@ public:
     //显示图片，并延时显示空白
     void showDelayDisplayBlankSpace(int ms);
     //设置为显示照片
-    void setShowPicture();
+    void showPicture();
+
+
     //判断是否显示图片
     bool isShowPicture() const;
+    //设置为显示空白
+    void showBlankSpace();
+
     //设置为点击选中状态，点击一下，显示红色选中边框，再次点击取消
     void setSelected(bool isAct = true);
     //判定是否选中

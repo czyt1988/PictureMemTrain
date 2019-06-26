@@ -95,6 +95,8 @@ private:
     int m_currentLocationTestIndex;///< 记录位置测试的索引
     QList<QPair<int,int> > m_trainOrder;///< 记录训练的顺序
     int m_trainOrderIndex;///< 训练的索引
+    bool m_whenInSecondSessionDonotShowPicToMem;///< 标记当第二轮时不进行图片全部显示再次记忆
+    QSet<PMTPixmapWidget*> m_selectedWidgetInRange; ///< 记录记忆阶段点击过的图片
 };
 
 #endif // TRAINWIDGET_H

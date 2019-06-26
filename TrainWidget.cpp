@@ -14,6 +14,7 @@ TrainWidget::TrainWidget(QWidget *parent) :
   ,m_hspan(15)
   ,m_vspan(15)
   ,m_currentClicked(nullptr)
+  ,m_whenInSecondSessionDonotShowPicToMem(true)
 {
     ui->setupUi(this);
     m_trainOrder = PMT::TrainInfo().getTaskList();
@@ -193,14 +194,40 @@ void TrainWidget::resetPictureInGroup1()
 {
     ui->pushButtonNo->hide();
     ui->pushButtonOK->hide();
+    m_selectedWidgetInRange.clear();
     m_nameToPMTWidgetGroup1.clear();
-    for(int i=0;i<m_picList.size();++i)
+    if(!m_whenInSecondSessionDonotShowPicToMem)
     {
-        m_picList[i]->setPixmap(m_controller.getPixmap(i),m_controller.getPixmapName(i));
-        m_picList[i]->showDelayDisplayBlankSpace(2000);
-        m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickShowPicture);
-        m_picList[i]->setSelected(false);
-        m_nameToPMTWidgetGroup1[m_controller.getPixmapName(i)] = m_picList[i];
+        for(int i=0;i<m_picList.size();++i)
+        {
+            m_picList[i]->setPixmap(m_controller.getPixmap(i),m_controller.getPixmapName(i));
+            m_nameToPMTWidgetGroup1[m_controller.getPixmapName(i)] = m_picList[i];
+            m_picList[i]->showDelayDisplayBlankSpace(2000);
+            m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickShowPicture);
+            m_picList[i]->setSelected(false);
+        }
+    }
+    else
+    {
+        for(int i=0;i<m_picList.size();++i)
+        {
+            if(0 == m_trainOrderIndex)
+            {
+                m_picList[i]->setPixmap(m_controller.getPixmap(i),m_controller.getPixmapName(i));
+                m_nameToPMTWidgetGroup1[m_controller.getPixmapName(i)] = m_picList[i];
+                m_picList[i]->showDelayDisplayBlankSpace(2000);
+                m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickShowPicture);
+                m_picList[i]->setSelected(false);
+            }
+            else
+            {
+                m_picList[i]->setPixmap(m_controller.getPixmap(i),m_controller.getPixmapName(i));
+                m_nameToPMTWidgetGroup1[m_controller.getPixmapName(i)] = m_picList[i];
+                m_picList[i]->showBlankSpace();
+                m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickShowPicture);
+                m_picList[i]->setSelected(false);
+            }
+        }
     }
 }
 
@@ -210,7 +237,7 @@ void TrainWidget::resetPictureInGroup2()
     for(int i=0;i<m_picList.size();++i)
     {
         m_picList[i]->setPixmap(m_controller.getPixmap(i,TrainController::Group2),m_controller.getPixmapName(i,TrainController::Group2));
-        m_picList[i]->setShowPicture();
+        m_picList[i]->showPicture();
         m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickSelect);
         m_picList[i]->setSelected(false);
         m_nameToPMTWidgetGroup2[m_controller.getPixmapName(i,TrainController::Group2)] = m_picList[i];
@@ -238,7 +265,7 @@ void TrainWidget::showTestLocation()
     {
         LocationTestValue v = m_locationTestValues[m_currentLocationTestIndex];
         PMTPixmapWidget* w = m_picList[v.showLocation];
-        w->setShowPicture();
+        w->showPicture();
         w->setPixmap(m_controller.getPixmap(v.picName),v.picName);
         w->setClickActionMode(PMTPixmapWidget::ClickNothing);
         qDebug() << "v.showLocation：" << v.showLocation;
@@ -295,9 +322,11 @@ void TrainWidget::onFinishPictureMem(const QString &name,QDateTime clickedInTime
     {
         //把其余设置为可选，把这个设置为不可选
         w->setClickActionMode(PMTPixmapWidget::ClickNothing);
+        m_selectedWidgetInRange.insert(w);
         for(int i=0;i<m_picList.size();++i)
         {
-            m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickShowPicture);
+            if(!m_selectedWidgetInRange.contains(m_picList[i]))
+                m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickShowPicture);
         }
         m_currentClicked = nullptr;
         PMTTestSelRecord ptr;

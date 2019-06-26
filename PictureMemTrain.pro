@@ -24,6 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+    MemRecord.cpp \
         main.cpp \
         MainWindow.cpp \
     FramelessHelper.cpp \
@@ -39,6 +40,7 @@ SOURCES += \
 HEADERS += \
         MainWindow.h \
     FramelessHelper.h \
+    MemRecord.h \
     MessageBoxDialog.h \
     LoginWidget.h \
     TrainTypeSelectWidget.h \

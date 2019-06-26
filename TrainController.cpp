@@ -306,6 +306,7 @@ void TrainController::savePicTestOrder(const QList<int> &los)
     if(shs.size() <= 0)
     {
         qDebug() << "invalid excel";
+        emit error(tr("无效的excel文件，请确保格式为xlsx"));
         return;
     }
     xlsx.selectSheet(shs[0]);
@@ -332,6 +333,7 @@ void TrainController::savePicTestOrder(const QList<int> &los)
         emit saveResultExcelErr();
     }
 }
+
 
 void TrainController::removeAndResetPicture()
 {

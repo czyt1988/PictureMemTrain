@@ -77,7 +77,9 @@ private:
 signals:
     void finish();
     void saveResultExcelErr();
+    void error(const QString& err);
 private:
+    friend class MemRecord;
     QString m_matchingNum;
     QString m_expNum;
     QString m_age;

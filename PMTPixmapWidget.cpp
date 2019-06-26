@@ -166,9 +166,14 @@ void PMTPixmapWidget::showDelayDisplayBlankSpace(int ms)
     repaint();
 }
 
-void PMTPixmapWidget::setShowPicture()
+void PMTPixmapWidget::showPicture()
 {
     setViewMode(ViewPicture);
+}
+
+void PMTPixmapWidget::showBlankSpace()
+{
+    setViewMode(ViewBlankSpace);
 }
 
 bool PMTPixmapWidget::isShowPicture() const
