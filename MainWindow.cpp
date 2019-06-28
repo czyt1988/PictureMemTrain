@@ -5,6 +5,7 @@
 #include "LoginWidget.h"
 #include "TrainTypeSelectWidget.h"
 #include "TrainWidget.h"
+#include <QDir>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -91,18 +92,46 @@ void MainWindow::onPushBottonBackClicked()
 
 void MainWindow::onLoginWidgetOK()
 {
+    QString v = m_loginWidget->getMatchingNum();
     m_trainWidget->setAge( m_loginWidget->getAge() );
     m_trainWidget->setExpNum(m_loginWidget->getExpNum());
     m_trainWidget->setShortName(m_loginWidget->getShortName());
-    m_trainWidget->setMatchingNum(m_loginWidget->getMatchingNum());
+    m_trainWidget->setMatchingNum(v);
+    if(!v.isEmpty())
+    {
+        QString err;
+        MemRecord mr;
+        if(!mr.load(QApplication::applicationDirPath() + QDir::separator() + "match/match.xlsx",v,&err))
+        {
+            QMessageBox::critical(this,tr("错误"),tr("匹配excel异常，异常原因：%1").arg(err));
+            return;
+        }
+        m_recordDatas = mr.getRecordDatas();
+    }
+    else {
+        m_recordDatas.clear();
+    }
     showTrainSelPage();
 }
 
 void MainWindow::onTrainTypeSelected(PMT::TrainType type)
 {
-    m_trainWidget->setTrainType(type);
+    switch(type)
+    {
+    case PMT::FormalType1:
+        m_trainWidget->setTrainType(type,(m_recordDatas.size() != 0) ? m_recordDatas[0] : MemRecordData());
+        break;
+    case PMT::FormalType2:
+        m_trainWidget->setTrainType(type,(m_recordDatas.size() != 0) ? m_recordDatas[1] : MemRecordData());
+        break;
+    case PMT::FormalType3:
+        m_trainWidget->setTrainType(type,(m_recordDatas.size() != 0) ? m_recordDatas[2] : MemRecordData());
+        break;
+    default:
+        m_trainWidget->setTrainType(type);
+        break;
+    }
     ui->stackedWidget->setCurrentWidget(m_trainWidget);
-
 }
 
 void MainWindow::onShowTooltip(const QString &message, int timeout)

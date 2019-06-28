@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include "Globals.h"
-
+#include "MemRecord.h"
 class LoginWidget;
 class TrainTypeSelectWidget;
 class TrainWidget;
@@ -37,6 +37,7 @@ private:
     LoginWidget* m_loginWidget;
     TrainTypeSelectWidget* m_trainSelWidget;
     TrainWidget* m_trainWidget;
+    QList<MemRecordData> m_recordDatas;///< 记录匹配结果
 };
 
 #endif // MAINWINDOW_H

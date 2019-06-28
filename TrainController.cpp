@@ -110,13 +110,20 @@ void TrainController::buildPicGroup3()
     int totalLocalTestCount = m_totalTrainPicCount - m_startTestPicIndex;
     //
     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
+    QSet<int> locationSet;
     for(int i=0;i<totalLocalTestCount;++i)
     {
         PMTTestSelRecord& pmtrec = m_selRecords[m_startTestPicIndex+i];
+        int loc = floor((qrand() / float(RAND_MAX))*(m_xnum*m_ynum));
+        while(locationSet.contains(loc))
+        {
+            loc = floor((qrand() / float(RAND_MAX))*(m_xnum*m_ynum));
+        }
         LocationTestValue ltv;
         ltv.realLocation = pmtrec.location;
         ltv.picName = pmtrec.picName;
-        ltv.showLocation = round((qrand() / float(RAND_MAX))*(m_xnum*m_ynum));
+        ltv.showLocation = loc;
+        locationSet.insert(loc);
         m_picNameShowGroup3.append(ltv);
     }
     //先判断这随机生成的是否符合：
@@ -145,7 +152,7 @@ void TrainController::buildPicGroup3()
         int correctIndex = floor(qrand() / float(RAND_MAX) * totalLocalTestCount);
         while(m_picNameShowGroup3[correctIndex].isCorrect())
         {
-            m_picNameShowGroup3[correctIndex].showLocation = round((qrand() / float(RAND_MAX))*(m_xnum*m_ynum));
+            m_picNameShowGroup3[correctIndex].showLocation = floor((qrand() / float(RAND_MAX))*(m_xnum*m_ynum));
         }
     }
     for(int i=0;i<totalLocalTestCount;++i)
@@ -190,6 +197,12 @@ void TrainController::resetTrainPram()
     m_locationMemTestResult.clear();
     m_picNameShowGroup3.clear();
 }
+
+void TrainController::setPicNameShowGroup1(const QList<QString> &picNameShowGroup1)
+{
+    m_picNameShowGroup1 = picNameShowGroup1;
+}
+
 
 #define COL_ExpNum 1
 #define COL_ShortName 2

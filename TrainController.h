@@ -5,6 +5,7 @@
 #include <PMTTestValue.h>
 #include <QPixmap>
 #include "Globals.h"
+#include "MemRecord.h"
 /**
  * @brief 此类用于控制训练逻辑
  *
@@ -63,6 +64,10 @@ public:
     void savePicTestOrder(const QList<int>& los);
     //移除原来的照片，插入新的照片
     void removeAndResetPicture();
+
+    //设置图片序列
+    void setPicNameShowGroup1(const QList<QString> &picNameShowGroup1);
+
 private:
     void initResources();
     //建立图片组
