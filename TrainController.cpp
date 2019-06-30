@@ -10,6 +10,7 @@
 #include "xlsxabstractsheet.h"
 #include <QStringList>
 #include <QTimer>
+#include "Globals.h"
 TrainController::TrainController(QObject *par):QObject(par)
   ,m_xnum(4)
   ,m_ynum(4)
@@ -89,18 +90,20 @@ void TrainController::initResources()
         m_nameToPic[fi.baseName()] = p;
         m_names.append(fi.baseName());
     }
-
+    qDebug() <<m_names;
 }
 
 void TrainController::buildPicGroup1()
 {
-     m_picNameShowGroup1 = shufflePicName(m_names,m_xnum*m_ynum);
-     qDebug() << " buildPicGroup1 :" << m_picNameShowGroup1;
+    m_picNameShowGroup1.clear();
+    randSelect(m_names,m_picNameShowGroup1,m_xnum*m_ynum);
+    qDebug() << " buildPicGroup1 :" << m_picNameShowGroup1;
 }
 
 void TrainController::buildPicGroup2()
 {
-     m_picNameShowGroup2 = shufflePicName(m_picNameShowGroup1,m_picNameShowGroup1.size());
+    m_picNameShowGroup2 = m_picNameShowGroup1;
+    PMT::TrainInfo::shuffle(m_picNameShowGroup2.begin(),m_picNameShowGroup2.end());
 }
 
 void TrainController::buildPicGroup3()
@@ -114,6 +117,11 @@ void TrainController::buildPicGroup3()
     for(int i=0;i<totalLocalTestCount;++i)
     {
         PMTTestSelRecord& pmtrec = m_selRecords[m_startTestPicIndex+i];
+        locationSet.insert(pmtrec.location);
+    }
+    for(int i=0;i<totalLocalTestCount;++i)
+    {
+        PMTTestSelRecord& pmtrec = m_selRecords[m_startTestPicIndex+i];
         int loc = floor((qrand() / float(RAND_MAX))*(m_xnum*m_ynum));
         while(locationSet.contains(loc))
         {
@@ -124,6 +132,7 @@ void TrainController::buildPicGroup3()
         ltv.picName = pmtrec.picName;
         ltv.showLocation = loc;
         locationSet.insert(loc);
+
         m_picNameShowGroup3.append(ltv);
     }
     //先判断这随机生成的是否符合：
@@ -142,7 +151,7 @@ void TrainController::buildPicGroup3()
     }
     if(!haveCorrect)
     {
-        //如果没有正确的，随机选择一个序列作为正确值
+        //如果没有正确的，随机选择一个序列,且这个正确的序列不能在随机序列里
         int correctIndex = floor(qrand() / float(RAND_MAX) * totalLocalTestCount);
         m_picNameShowGroup3[correctIndex].showLocation = m_picNameShowGroup3[correctIndex].realLocation;
     }
@@ -186,6 +195,20 @@ QList<QString> TrainController::shufflePicName(const QList<QString> &org, uint s
     return res;
 }
 
+void TrainController::randSelect(const QList<QString> &org, QList<QString> &res, int len)
+{
+    QSet<int> selIndex;
+    qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
+    do{
+        int index = round((qrand() / float(RAND_MAX)) * (org.size()-1));
+        if(!selIndex.contains(index))
+        {
+            res.append(org[index]);
+            selIndex.insert(index);
+        }
+    }while(res.size() < len);
+}
+
 void TrainController::resetTrainPram()
 {
     //训练模式下参数
@@ -198,9 +221,25 @@ void TrainController::resetTrainPram()
     m_picNameShowGroup3.clear();
 }
 
-void TrainController::setPicNameShowGroup1(const QList<QString> &picNameShowGroup1)
+bool TrainController::setPicNameShowGroup1(const QList<QString> &picNameShowGroup1,QString* info)
 {
+    QString canotFind;
+    for(int i=0;i<picNameShowGroup1.size();++i)
+    {
+        if(!m_nameToPic.contains(picNameShowGroup1[i]))
+        {
+            canotFind += picNameShowGroup1[i];
+            canotFind += ",";
+        }
+    }
     m_picNameShowGroup1 = picNameShowGroup1;
+    if(!canotFind.isEmpty())
+    {
+        if(info)
+            *info = canotFind;
+        return false;
+    }
+    return true;
 }
 
 
@@ -239,7 +278,8 @@ void TrainController::saveResult()
         }
     }
 
-
+    qDebug() << "save expNum:" <<  m_expNum << " shortName:" << m_shortName<<" age:"<<m_age
+             << " m_firstNullRow:" << m_firstNullRow;
     xlsx.write(m_firstNullRow,COL_ExpNum,m_expNum);
     xlsx.write(m_firstNullRow,COL_ShortName,m_shortName);
     xlsx.write(m_firstNullRow,COL_Age,m_age);
@@ -309,6 +349,7 @@ void TrainController::saveResult()
     {
         emit saveResultExcelErr();
     }
+
 }
 
 void TrainController::savePicTestOrder(const QList<int> &los)
@@ -345,6 +386,7 @@ void TrainController::savePicTestOrder(const QList<int> &los)
     {
         emit saveResultExcelErr();
     }
+    m_firstNullRow = 0;
 }
 
 
@@ -353,7 +395,7 @@ void TrainController::removeAndResetPicture()
     int t = m_xnum*m_ynum;
     for(int i=0;i<m_picNameShowGroup1.size();++i)
     {
-        if(t < m_nameToPic.size())
+        if(t <= m_nameToPic.size())
         {
             m_nameToPic.remove(m_picNameShowGroup1[i]);
             m_names.removeOne(m_picNameShowGroup1[i]);

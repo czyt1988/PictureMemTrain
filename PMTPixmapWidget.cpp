@@ -57,7 +57,12 @@ void PMTPixmapWidget::paintEvent(QPaintEvent *e)
     {
         borderColor = m_selBorderColor;
     }
-    if((ClickSelect == m_clickActionMode||ClickShowPicture==m_clickActionMode) && m_isSel)
+
+//    if((ClickSelect == m_clickActionMode||ClickShowPicture==m_clickActionMode) && m_isSel)
+//    {
+//        borderColor = m_selBorderColor;
+//    }
+    if(m_isSel)
     {
         borderColor = m_selBorderColor;
     }
@@ -161,8 +166,8 @@ void PMTPixmapWidget::setClickActionMode(const ClickMode &clickMode)
 
 void PMTPixmapWidget::showDelayDisplayBlankSpace(int ms)
 {
-    setViewMode(ViewDelayDisplayBlankSpaceMode);
     setDelayTime(ms);
+    setViewMode(ViewDelayDisplayBlankSpaceMode);
     repaint();
 }
 

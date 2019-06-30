@@ -29,7 +29,7 @@ public:
     void setShortName(const QString& v);
 
     PMT::TrainType getTrainType() const;
-    void setTrainType(const PMT::TrainType &trainType, MemRecordData mr = MemRecordData());
+    void setTrainType(const PMT::TrainType &trainType, const MemRecordData &mr = MemRecordData());
 
     void resetXYNum(int xnum,int ynum);
     QRect getPicRect() const;

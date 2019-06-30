@@ -66,7 +66,7 @@ public:
     void removeAndResetPicture();
 
     //设置图片序列
-    void setPicNameShowGroup1(const QList<QString> &picNameShowGroup1);
+    bool setPicNameShowGroup1(const QList<QString> &picNameShowGroup1, QString *info);
 
 private:
     void initResources();
@@ -76,6 +76,8 @@ private:
     void buildPicGroup3();
     //随机循环位交换法进行洗牌
     static QList<QString> shufflePicName(const QList<QString> &org,uint shuffleLen);
+
+    void randSelect(const QList<QString> &org,QList<QString>& res,int len);
     //重载训练参数
     void resetTrainPram();
 

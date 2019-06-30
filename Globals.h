@@ -22,7 +22,7 @@ enum TrainType
  */
 class TrainInfo{
 public:
-    TrainInfo(int startIndex = 3,std::initializer_list<int> total = {4,5,6});
+    TrainInfo(int trainCount = 3,std::initializer_list<int> total = {4,5,6});
     template<typename Ite1>
     static void shuffle(Ite1 begin,Ite1 end);
     QList<QPair<int,int> > getTaskList() const;

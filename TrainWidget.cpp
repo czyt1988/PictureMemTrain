@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include "MemRecord.h"
+#define DEBUG_PRIN
 #define FIRST_SHOW_DELAY_TIME 2000
 TrainWidget::TrainWidget(QWidget *parent) :
     QWidget(parent),
@@ -21,6 +22,10 @@ TrainWidget::TrainWidget(QWidget *parent) :
   ,m_autoRunOneTrainRecordDataIndex(0)
 {
     ui->setupUi(this);
+    setAutoFillBackground(true);
+    QPalette pl = palette();
+    pl.setColor(QPalette::Background,Qt::white);
+    setPalette(pl);
     m_controller = new TrainController(this);
     m_trainOrder = PMT::TrainInfo().getTaskList();
     m_trainOrderIndex = 0;
@@ -67,8 +72,10 @@ PMT::TrainType TrainWidget::getTrainType() const
     return m_trainType;
 }
 
-void TrainWidget::setTrainType(const PMT::TrainType &trainType,MemRecordData mr)
+void TrainWidget::setTrainType(const PMT::TrainType &trainType,const MemRecordData& mr)
 {
+    qDebug() << "trainType:" << trainType;
+    m_currentClicked = nullptr;
     m_trainType = trainType;
     int trainPicCount = 3;
     int startTestIndex = 0;
@@ -90,13 +97,19 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType,MemRecordData mr)
     case PMT::FormalType3:
         if(mr.isValid)
         {
-            m_controller->setPicNameShowGroup1(mr.m_picNameShowGroup1);
+            QString err;
+            if(!m_controller->setPicNameShowGroup1(mr.m_picNameShowGroup1,&err))
+            {
+                QMessageBox::warning(this,tr("警告"),QString("匹配内容中，以下图片无法找到：%1请检查匹配测试的excel").arg(err));
+            }
             m_trainOrder.clear();
+            m_trainOrderIndex = 0;
             for(int i=0;i<mr.m_selectData.size();++i)
             {
-                m_trainOrder.append(qMakePair(mr.m_selectData[i].m_order,mr.m_selectData[i].m_order-trainPicCount));
-                m_trainOrderIndex = 0;
+                m_trainOrder.append(qMakePair(mr.m_selectData[i].m_order,mr.m_selectData[i].m_order - 3));
             }
+            trainPicCount = m_trainOrder.first().first;
+            startTestIndex = m_trainOrder.first().second;
         }
         else
         {
@@ -109,6 +122,7 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType,MemRecordData mr)
     default:
         break;
     }
+    qDebug() << m_trainOrder;
     m_controller->makeProject(trainPicCount,startTestIndex);
     //重置图片
     resetPictureInGroup1();
@@ -375,13 +389,18 @@ void TrainWidget::onClicked(const QString& name)
 {
     if (!m_controller->isFinishSelPic())
     {
+        //还没有选择完，触发点击事件
         if(!m_nameToPMTWidgetGroup1.contains(name))
         {
             qDebug() << "can not find widget!";
             return;
         }
         PMTPixmapWidget* w = m_nameToPMTWidgetGroup1[name];
-        //还未完成选图，
+        //还未完成选图
+#ifdef DEBUG_PRIN
+        qDebug() << "not finish sel pic:" << " sel :" << name << " is can find w:" << (w != nullptr)
+                 << " currentClicked is not null:" << (nullptr != m_currentClicked);
+#endif
         if(nullptr == m_currentClicked)
         {
             m_currentClicked = w;
@@ -427,9 +446,16 @@ void TrainWidget::onClicked(const QString& name)
                 }
                 else
                 {
-                    setToLocationMemTestType();
-                    ui->pushButtonNo->show();
-                    ui->pushButtonOK->show();
+                    for(int i=0;i<m_picList.size();++i)
+                    {
+                        m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickNothing);
+                    }
+                    QTimer::singleShot(1000,this,[this](){
+                        this->setToLocationMemTestType();
+                        this->ui->pushButtonNo->show();
+                        this->ui->pushButtonOK->show();
+                    });
+
                 }
             }
         }
@@ -477,7 +503,7 @@ void TrainWidget::onFinish()
             ||
        PMT::FormalType2 == getTrainType()
             ||
-       PMT::FormalType2 == getTrainType())
+       PMT::FormalType3 == getTrainType())
     {
         m_controller->saveResult();
         ++m_trainOrderIndex;
@@ -487,6 +513,7 @@ void TrainWidget::onFinish()
             ui->pushButtonOK->hide();
             int trainPicCount = m_trainOrder[m_trainOrderIndex].first;
             int startTestIndex = m_trainOrder[m_trainOrderIndex].second;
+            m_currentClicked = nullptr;
             m_controller->makeProject(trainPicCount,startTestIndex);
             //重置图片
             resetPictureInGroup1();
@@ -507,7 +534,9 @@ void TrainWidget::onFinish()
                 order.append(m_trainOrder[i].first);
             }
             m_controller->savePicTestOrder(order);
-            m_controller->removeAndResetPicture();
+            if(!m_memRecord.isValid)
+                m_controller->removeAndResetPicture();
+            qDebug() << "=======================Finish=====================";
             emit finish(getTrainType());
         }
     }

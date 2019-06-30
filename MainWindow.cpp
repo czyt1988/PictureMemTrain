@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     initStyle();
     initWidget();
     initConnection();
-
+    showMaximized();
 }
 
 MainWindow::~MainWindow()

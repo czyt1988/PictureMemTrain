@@ -42,6 +42,7 @@ bool MemRecord::load(const QString &excel, const QString &matchNum, QString *err
         return false;
     }
     //
+    QSet<int> orderCheck = {4,5,6};
     for (int i=0;i<m_rows.size();++i) {
         QList<int> orders;
         int r = m_rows[i];
@@ -49,21 +50,27 @@ bool MemRecord::load(const QString &excel, const QString &matchNum, QString *err
         {
             return false;
         }
+        if(!orderCheck.contains(orders.toSet()))
+        {
+            QString info = QStringLiteral("匹配excel顺序个数的数字异常，在第%1行").arg(r);
+            qDebug() << info;
+            return false;
+        }
+        MemRecordData mrd;
+        //读取第50列获取所有的图片
+        if(!loadPicNames(xlsx,r,mrd.m_picNameShowGroup1,errInfo))
+        {
+            return false;
+        }
         for(int j=0;j<orders.size();++j)
         {
-            MemRecordData mrd;
-            //读取第50列获取所有的图片
-            if(!loadPicNames(xlsx,r,mrd.m_picNameShowGroup1,errInfo))
-            {
-                return false;
-            }
             if(!loadOneOrderRecord(xlsx,r,orders[j],mrd,errInfo))
             {
                 return false;
             }
             mrd.isValid = true;
-            m_recordDatas.append(mrd);
         }
+        m_recordDatas.append(mrd);
     }
     return true;
 }
@@ -220,7 +227,7 @@ bool MemRecord::loadOneOrderClickedRecord(QXlsx::Document &excel, int row,int st
         //获取间隔时间
         QVariant v = excel.read(row,startCol+i*3+2);
         int ms = abs(v.toTime().msecsTo(QTime(0,0,0)));
-        qDebug() << v.typeName() << "  " <<v.toString() << " intv:" << ms;
+//        qDebug() << v.typeName() << "  " <<v.toString() << " intv:" << ms;
         if(pos >=  res.m_picNameShowGroup1.size())
         {
             info = QStringLiteral("匹配excel异常，在第%1行,%2-%3 位置列，位置超出范围").arg(row).arg(order).arg(i+1);
