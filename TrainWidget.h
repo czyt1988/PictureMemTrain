@@ -83,6 +83,8 @@ private slots:
     void on_pushButtonNo_clicked();
 
     void onAutoRunTimeout();
+    void on_pushButtonSure_clicked();
+
 signals:
     void showTooltip(const QString &message, int timeout);
     void finish(PMT::TrainType trainType);
@@ -108,6 +110,13 @@ private:
     MemRecordData m_memRecord;
     int m_autoRunMemRecordDataIndex;///< 记录自动播放的学习轮次的位置
     int m_autoRunOneTrainRecordDataIndex;///<记录每轮，学习图片的索引位置
+    //
+    uint m_borderWidth;///< 边框的宽度
+    int m_OKNOButtonFactor;///< 按钮和界面高度的系数
+    int m_OKNOButtonMaxWidth;///< 测试模式下确定和取消按钮的最大宽度像素
+    bool m_isAutoCheckOrderTest;///< 标记顺序测试是否自动确认
+    //
+    QList<QString> m_orderTestSelectPicNames;///< 记录顺序测试图片选择
 };
 
 #endif // TRAINWIDGET_H

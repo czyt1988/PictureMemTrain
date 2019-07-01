@@ -197,16 +197,19 @@ QList<QString> TrainController::shufflePicName(const QList<QString> &org, uint s
 
 void TrainController::randSelect(const QList<QString> &org, QList<QString> &res, int len)
 {
-    QSet<int> selIndex;
+    QList<QString> tmpOrg = org.toSet().toList();//去重
+    if(tmpOrg.size() < len)
+    {
+        qDebug() << "pic size invalid";
+    }
+    QSet<QString> tmpRes;
     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
     do{
-        int index = round((qrand() / float(RAND_MAX)) * (org.size()-1));
-        if(!selIndex.contains(index))
-        {
-            res.append(org[index]);
-            selIndex.insert(index);
-        }
-    }while(res.size() < len);
+        int index = round((qrand() / float(RAND_MAX)) * (tmpOrg.size()-1));
+        tmpRes.insert(tmpOrg[index]);
+        tmpOrg.removeAt(index);
+    }while(tmpRes.size() < len);
+    res = tmpRes.toList();
 }
 
 void TrainController::resetTrainPram()
@@ -315,9 +318,12 @@ void TrainController::saveResult()
     {
         xlsx.write(m_firstNullRow,colBias+i*5,m_selRecords[i].picName);
         xlsx.write(m_firstNullRow,colBias+i*5+1,m_selRecords[i].location);
-        xlsx.write(m_firstNullRow,colBias+i*5+2,m_selRecords[i].picShowTime);
-        xlsx.write(m_firstNullRow,colBias+i*5+3,m_selRecords[i].picDisappearTime);
-        xlsx.write(m_firstNullRow,colBias+i*5+4,m_selRecords[i].intervalMs());
+        QXlsx::Format format;
+        format.setNumberFormat("yyyy-mm-dd hh:mm:ss.ms");
+        xlsx.write(m_firstNullRow,colBias+i*5+2,m_selRecords[i].picShowTime,format);
+        xlsx.write(m_firstNullRow,colBias+i*5+3,m_selRecords[i].picDisappearTime,format);
+        format.setNumberFormat("mm:ss.ms");
+        xlsx.write(m_firstNullRow,colBias+i*5+4,QTime(0,0,0).addMSecs(m_selRecords[i].intervalMs()),format);
     }
     //保存顺序测试结果
     for(int i=0;i<m_orderMemTestResult.size();++i)
@@ -432,6 +438,11 @@ bool TrainController::isFinishSelPic() const
 int TrainController::getSelPicCount() const
 {
     return m_selRecords.size();
+}
+
+int TrainController::getMaxSelPicCount() const
+{
+    return m_totalTrainPicCount-m_startTestPicIndex;
 }
 
 

@@ -44,7 +44,7 @@ public:
     int getTotalTrainPicCount() const;
 
     int getSelPicCount() const;
-
+    int getMaxSelPicCount() const;
     bool isFinishSelPic() const;
     void appendOneSelRecord(const PMTTestSelRecord& r);
     void appendOrderMemTestRecord(const QString& name);

@@ -71,6 +71,36 @@
      <normaloff>:/pic/res/pic/cancel.svg</normaloff>:/pic/res/pic/cancel.svg</iconset>
    </property>
   </widget>
+  <widget class="QPushButton" name="pushButtonSure">
+   <property name="geometry">
+    <rect>
+     <x>490</x>
+     <y>150</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>确定</string>
+   </property>
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/pic/res/pic/ok.svg</normaloff>:/pic/res/pic/ok.svg</iconset>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>20</y>
+     <width>431</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
  </widget>
  <resources>
   <include location="res.qrc"/>

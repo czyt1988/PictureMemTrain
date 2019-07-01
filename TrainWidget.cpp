@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include "MemRecord.h"
+#include <QSettings>
 #define DEBUG_PRIN
 #define FIRST_SHOW_DELAY_TIME 2000
 TrainWidget::TrainWidget(QWidget *parent) :
@@ -20,18 +21,34 @@ TrainWidget::TrainWidget(QWidget *parent) :
   ,m_whenInSecondSessionDonotShowPicToMem(true)
   ,m_autoRunMemRecordDataIndex(0)
   ,m_autoRunOneTrainRecordDataIndex(0)
+  ,m_borderWidth(5)
+  ,m_OKNOButtonFactor(10)
+  ,m_OKNOButtonMaxWidth(150)
+  ,m_isAutoCheckOrderTest(true)
 {
     ui->setupUi(this);
     setAutoFillBackground(true);
     QPalette pl = palette();
     pl.setColor(QPalette::Background,Qt::white);
     setPalette(pl);
+    QSettings settings("PictureMemTrain.ini", QSettings::IniFormat);
+    m_borderWidth = settings.value("paint/borderWidth",5).toUInt();
+    QFont f = font();
+    f.setFamily(settings.value("ui/labelIllustrationFontName=",QStringLiteral("微软雅黑")).toString());
+    f.setPointSize(settings.value("ui/labelIllustrationFontSize",28).toInt());
+    f.setBold(settings.value("ui/labelIllustrationFontBolt",false).toBool());
+    m_OKNOButtonFactor = settings.value("ui/OKNOButtonFactor",10).toInt();
+    m_OKNOButtonMaxWidth = settings.value("ui/OKNOButtonMaxWidth",150).toInt();
+    m_isAutoCheckOrderTest = settings.value("interaction/isAutoCheckOrderTest",true).toBool();
+    ui->labelIllustration->setFont(f);
     m_controller = new TrainController(this);
     m_trainOrder = PMT::TrainInfo().getTaskList();
     m_trainOrderIndex = 0;
+    ui->label->hide();
     ui->labelIllustration->hide();
     ui->pushButtonNo->hide();
     ui->pushButtonOK->hide();
+    ui->pushButtonSure->hide();
     setHspan(15);
     setVspan(15);
     setPicSize(calcPrefectSize());
@@ -75,6 +92,7 @@ PMT::TrainType TrainWidget::getTrainType() const
 void TrainWidget::setTrainType(const PMT::TrainType &trainType,const MemRecordData& mr)
 {
     qDebug() << "trainType:" << trainType;
+    m_orderTestSelectPicNames.clear();
     m_currentClicked = nullptr;
     m_trainType = trainType;
     int trainPicCount = 3;
@@ -150,6 +168,7 @@ void TrainWidget::resetXYNum(int xnum, int ynum)
         {
             PMTPixmapWidget* w = new PMTPixmapWidget(this);
             w->setId(i+j*m_controller->getYnum());
+            w->setBorderWidth(m_borderWidth);
             connect(w,&PMTPixmapWidget::finishPictureMem,this,&TrainWidget::onFinishPictureMem);
             connect(w,&PMTPixmapWidget::clicked,this,&TrainWidget::onClicked);
             w->setGeometry(m_topleftPoint.x()+xoffset*i,m_topleftPoint.y()+yoffset*j,m_picSize.width(),m_picSize.height());
@@ -162,26 +181,39 @@ void TrainWidget::resetXYNum(int xnum, int ynum)
 
 void TrainWidget::resizeEvent(QResizeEvent *e)
 {
+    ui->label->setGeometry(0,0,width(),height()/10);
+
     setPicSize(calcPrefectSize());
     recalcSize();
     int xoffset = m_picSize.width() + getHspan();
     int yoffset = m_picSize.height() + getVspan();
+    int maxLeft = 0;
     for(int j=0;j<m_controller->getYnum();++j)
     {
         for(int i=0;i<m_controller->getXnum();++i)
         {
             PMTPixmapWidget* w = m_picList[i+j*m_controller->getYnum()];
             w->setGeometry(m_topleftPoint.x()+xoffset*i,m_topleftPoint.y()+yoffset*j,m_picSize.width(),m_picSize.height());
+            maxLeft = qMax(maxLeft,w->geometry().right());
         }
 
     }
     //设置说明label
-    int lh = 50;
+    int lh = height()/1.5;
     ui->labelIllustration->setGeometry(5,height()/2-lh/2,width()-10,lh);
-    int btnH = 30;
-    int btnW = 100;
+    int btnH = height()/m_OKNOButtonFactor;
+    int btnW = ((width() - maxLeft) > m_OKNOButtonMaxWidth) ? m_OKNOButtonMaxWidth : (width() - maxLeft - 10);
     ui->pushButtonOK->setGeometry(width()-10-btnW,height()/2-btnH-20,btnW,btnH);
     ui->pushButtonNo->setGeometry(width()-10-btnW,height()/2+btnH+20,btnW,btnH);
+    ui->pushButtonSure->setGeometry(width()-10-btnW,height()/2-btnH/2,btnW,btnH);
+    QFont f = font();
+    f.setPixelSize(btnH/2);
+    ui->pushButtonOK->setFont(f);
+    ui->pushButtonNo->setFont(f);
+    ui->pushButtonSure->setFont(f);
+    ui->pushButtonOK->setIconSize(QSize(btnH/2,btnH/2));
+    ui->pushButtonNo->setIconSize(QSize(btnH/2,btnH/2));
+    ui->pushButtonSure->setIconSize(QSize(btnH/2,btnH/2));
     QWidget::resizeEvent(e);
 }
 
@@ -201,7 +233,7 @@ void TrainWidget::recalcSize()
 {
     //计算离上下的总间距
     int v = (getPicSize().height() * m_controller->getYnum()) + (getVspan() * (m_controller->getYnum() - 1));
-    m_topleftPoint.ry() = (height() - v) / 2;
+    m_topleftPoint.ry() = ((height() - v - ui->label->height()) / 2)+ui->label->height();
     int h = (getPicSize().width() * m_controller->getXnum()) + (getHspan() * (m_controller->getXnum()-1));
     m_topleftPoint.rx() = (width() - h) / 2;
 
@@ -209,7 +241,7 @@ void TrainWidget::recalcSize()
 
 QSize TrainWidget::calcPrefectSize() const
 {
-    int h = height() / m_controller->getYnum();
+    int h = (height()-ui->label->height()) / m_controller->getYnum();
     int w = width() / m_controller->getXnum();
     int min = qMin(h,w);
     min = min - qMax(m_hspan,m_vspan);
@@ -315,13 +347,20 @@ void TrainWidget::resetTestType()
 void TrainWidget::setToOrderMemTestType()
 {
     resetPictureInGroup2();
-    emit showTooltip(tr("顺序记忆测试"),3000);
+    if(!m_isAutoCheckOrderTest)
+    {
+        ui->pushButtonSure->show();
+        ui->pushButtonSure->setEnabled(false);
+    }
+    //emit showTooltip(tr("顺序记忆测试"),3000);
 }
 
 void TrainWidget::setToLocationMemTestType()
 {
     resetPictureInGroup3();
-    emit showTooltip(tr("位置记忆测试"),3000);
+    ui->pushButtonSure->hide();
+    ui->pushButtonSure->setEnabled(false);
+    //emit showTooltip(tr("位置记忆测试"),3000);
 }
 
 
@@ -423,50 +462,92 @@ void TrainWidget::onClicked(const QString& name)
         //进入顺序测试阶段
         //记录选中内容m_orderMemSelName
         m_currentClicked = w;
-        if(w->isSelected())
+        if(m_isAutoCheckOrderTest)
         {
-            m_controller->appendOrderMemTestRecord(name);
-            if(m_controller->isFinishOrderMemTest())
+            //自动进入位置测试
+            if(w->isSelected())
             {
-                QString des;
-                QList<bool> ores = m_controller->orderMemTestResult();
-                for(int i=0;i<ores.size();++i)
+                m_controller->appendOrderMemTestRecord(name);
+                if(m_controller->isFinishOrderMemTest())
                 {
-                    des += tr("%1、结果:%2 ; ").arg(i+1).arg(ores[i] ? tr("正确") : tr("错误"));
-                }
-                qDebug() << des;
-                //训练模式下把操作结果展示
-                if(PMT::TestType1 == m_trainType || PMT::TestType2 == m_trainType)
-                {
-                    showIllustration(des,2000,[this](){
-                        this->setToLocationMemTestType();
-                        ui->pushButtonNo->show();
-                        ui->pushButtonOK->show();
-                    });
-                }
-                else
-                {
-                    for(int i=0;i<m_picList.size();++i)
+                    QString des;
+                    QList<bool> ores = m_controller->orderMemTestResult();
+                    for(int i=0;i<ores.size();++i)
                     {
-                        m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickNothing);
+                        des += tr("%1、结果:%2 ; ").arg(i+1).arg(ores[i] ? tr("正确") : tr("错误"));
                     }
-                    QTimer::singleShot(1000,this,[this](){
-                        this->setToLocationMemTestType();
-                        this->ui->pushButtonNo->show();
-                        this->ui->pushButtonOK->show();
-                    });
+                    qDebug() << des;
+                    //训练模式下把操作结果展示
+                    if(PMT::TestType1 == m_trainType || PMT::TestType2 == m_trainType)
+                    {
+                        showIllustration(des,2000,[this](){
+                            this->setToLocationMemTestType();
+                            ui->pushButtonNo->show();
+                            ui->pushButtonOK->show();
+                        });
+                    }
+                    else
+                    {
+                        for(int i=0;i<m_picList.size();++i)
+                        {
+                            m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickNothing);
+                        }
 
+                        QTimer::singleShot(1000,this,[this](){
+                            this->setToLocationMemTestType();
+                            this->ui->pushButtonNo->show();
+                            this->ui->pushButtonOK->show();
+                        });
+
+
+
+                    }
+                }
+            }
+            else
+            {
+                if(!m_controller->orderMemTestRecordRef().isEmpty())
+                {
+                    if(m_controller->orderMemTestRecordRef().last() == name)
+                    {
+                        m_controller->popOrderMemTestRecord();
+                    }
                 }
             }
         }
         else
         {
-            if(!m_controller->orderMemTestRecordRef().isEmpty())
+            int maxSelSize = m_controller->getMaxSelPicCount();
+            if(w->isSelected())
             {
-                if(m_controller->orderMemTestRecordRef().last() == name)
+                m_orderTestSelectPicNames.append(name);
+                if(maxSelSize == m_orderTestSelectPicNames.size())
                 {
-                    m_controller->popOrderMemTestRecord();
+                    //达到条件，把设置为不可选
+                    ui->pushButtonSure->setEnabled(true);
+                    for(int i=0;i<m_picList.size();++i)
+                    {
+                        if(m_picList[i]->windowTitle() != name)
+                        {
+                            m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickNothing);
+                        }
+                    }
                 }
+                w->repaint();
+            }
+            else
+            {
+                if(maxSelSize == m_orderTestSelectPicNames.size())
+                {
+                    //所有设置为可选
+                    for(int i=0;i<m_picList.size();++i)
+                    {
+                        m_picList[i]->setClickActionMode(PMTPixmapWidget::ClickSelect);
+                        w->repaint();
+                    }
+                    ui->pushButtonSure->setEnabled(false);
+                }
+                m_orderTestSelectPicNames.removeOne(name);
             }
         }
     }
@@ -514,6 +595,7 @@ void TrainWidget::onFinish()
             int trainPicCount = m_trainOrder[m_trainOrderIndex].first;
             int startTestIndex = m_trainOrder[m_trainOrderIndex].second;
             m_currentClicked = nullptr;
+            m_orderTestSelectPicNames.clear();
             m_controller->makeProject(trainPicCount,startTestIndex);
             //重置图片
             resetPictureInGroup1();
@@ -714,4 +796,50 @@ void TrainWidget::setController(TrainController *controller)
             ,this,&TrainWidget::onSaveResultExcelErr);
     connect(m_controller,&TrainController::finish
             ,this,&TrainWidget::onFinish);
+}
+
+void TrainWidget::on_pushButtonSure_clicked()
+{
+    if(m_orderTestSelectPicNames.size() != m_controller->getMaxSelPicCount())
+    {
+        qDebug() << QStringLiteral("选择图片不在3张范围里");
+    }
+
+
+    if(PMT::TestType1 == m_trainType || PMT::TestType2 == m_trainType)
+    {
+        //显示正确情况
+        for(int i=0;i<m_orderTestSelectPicNames.size();++i)
+        {
+            m_controller->appendOrderMemTestRecord(m_orderTestSelectPicNames[i]);
+        }
+        ui->label->show();
+        ui->label->setAlignment(Qt::AlignVCenter|Qt::AlignHCenter);
+        QFont f = font();
+        f.setPixelSize(70);
+        ui->label->setFont(f);
+        QString des;
+        QList<bool> ores = m_controller->orderMemTestResult();
+        for(int i=0;i<ores.size();++i)
+        {
+            des += tr("%1、结果:%2 ; ").arg(i+1).arg(ores[i] ? tr("正确") : tr("错误"));
+        }
+        ui->label->setText(des);
+        QTimer::singleShot(2000,this,[this](){
+            this->ui->label->hide();
+            this->setToLocationMemTestType();
+            this->ui->pushButtonNo->show();
+            this->ui->pushButtonOK->show();
+        });
+    }
+    else
+    {
+        this->setToLocationMemTestType();
+        this->ui->pushButtonNo->show();
+        this->ui->pushButtonOK->show();
+        for(int i=0;i<m_orderTestSelectPicNames.size();++i)
+        {
+            m_controller->appendOrderMemTestRecord(m_orderTestSelectPicNames[i]);
+        }
+    }
 }
