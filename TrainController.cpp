@@ -11,6 +11,7 @@
 #include <QStringList>
 #include <QTimer>
 #include "Globals.h"
+#include <QSettings>
 TrainController::TrainController(QObject *par):QObject(par)
   ,m_xnum(4)
   ,m_ynum(4)
@@ -20,7 +21,12 @@ TrainController::TrainController(QObject *par):QObject(par)
   ,m_isFinishOrderMemTest(false)
   ,m_isFinishLocationMemTest(false)
   ,m_firstNullRow(0)
+  ,m_xlsxIntvTimeFormat("mm:ss.000")
+  ,m_xlsxDateTimeFormat("yyyy-mm-dd hh:mm:ss.ms")
 {
+    QSettings settings("PictureMemTrain.ini", QSettings::IniFormat);
+    m_xlsxIntvTimeFormat = settings.value("output/xlsxIntvTimeFormat","mm:ss.000").toString();
+    m_xlsxDateTimeFormat = settings.value("output/xlsxDateTimeFormat","yyyy-mm-dd hh:mm:ss.ms").toString();
     initResources();
     buildPicGroup1();
 }
@@ -317,12 +323,12 @@ void TrainController::saveResult()
     for(int i=0;i<m_selRecords.size();++i)
     {
         xlsx.write(m_firstNullRow,colBias+i*5,m_selRecords[i].picName);
-        xlsx.write(m_firstNullRow,colBias+i*5+1,m_selRecords[i].location);
+        xlsx.write(m_firstNullRow,colBias+i*5+1,m_selRecords[i].location+1);
         QXlsx::Format format;
-        format.setNumberFormat("yyyy-mm-dd hh:mm:ss.ms");
+        format.setNumberFormat(m_xlsxDateTimeFormat);
         xlsx.write(m_firstNullRow,colBias+i*5+2,m_selRecords[i].picShowTime,format);
         xlsx.write(m_firstNullRow,colBias+i*5+3,m_selRecords[i].picDisappearTime,format);
-        format.setNumberFormat("mm:ss.ms");
+        format.setNumberFormat(m_xlsxIntvTimeFormat);
         xlsx.write(m_firstNullRow,colBias+i*5+4,QTime(0,0,0).addMSecs(m_selRecords[i].intervalMs()),format);
     }
     //保存顺序测试结果
@@ -398,6 +404,7 @@ void TrainController::savePicTestOrder(const QList<int> &los)
 
 void TrainController::removeAndResetPicture()
 {
+    qDebug() << "brfore remove , pics count:" << m_names.size();
     int t = m_xnum*m_ynum;
     for(int i=0;i<m_picNameShowGroup1.size();++i)
     {
@@ -407,6 +414,7 @@ void TrainController::removeAndResetPicture()
             m_names.removeOne(m_picNameShowGroup1[i]);
         }
     }
+    qDebug() << "after remove , pics count:" << m_names.size() <<"pics:" <<  m_names;
     buildPicGroup1();
 }
 

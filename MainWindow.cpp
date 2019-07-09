@@ -6,6 +6,7 @@
 #include "TrainTypeSelectWidget.h"
 #include "TrainWidget.h"
 #include <QDir>
+#include <QSettings>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -17,6 +18,16 @@ MainWindow::MainWindow(QWidget *parent) :
     initWidget();
     initConnection();
     showMaximized();
+    QSettings settings("PictureMemTrain.ini", QSettings::IniFormat);
+    bool isShowTitle = settings.value("ui/isShowTitle",false).toBool();
+    if(isShowTitle)
+    {
+        QString t = settings.value("ui/appTitle",QStringLiteral("记忆测试")).toString();
+        ui->labelTitle->setText(t);
+    }
+    else {
+        ui->labelTitle->setText("");
+    }
 }
 
 MainWindow::~MainWindow()

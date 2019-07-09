@@ -108,6 +108,8 @@ private:
     QList<LocationTestValue> m_picNameShowGroup3;///< 第3次呈现的图片队列 - 此队列需要完成图片选择才可以生成
     QList<bool> m_locationMemTestResult;///< 记录位置测试的结果
     int m_firstNullRow;///< 第一组有内容的行
+    QString m_xlsxIntvTimeFormat;///< 定义输出excel的时间间隔的格式,默认mm:ss.000
+    QString m_xlsxDateTimeFormat;///< 定义输出excel的日期的格式 默认为yyyy-mm-dd hh:mm:ss.ms
 };
 
 #endif // TRAINCONTROLLER_H

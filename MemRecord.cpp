@@ -206,6 +206,7 @@ bool MemRecord::loadOneOrderClickedRecord(QXlsx::Document &excel, int row,int st
         //
         bool isOK = false;
         int pos = excel.read(row,startCol+i*3+1).toInt(&isOK);
+        //转换为0值索引
         --pos;
         if(!isOK)
         {

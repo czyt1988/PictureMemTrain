@@ -4,6 +4,7 @@
 #include <QPalette>
 #include <QTimer>
 #include <QDebug>
+#include <QSettings>
 
 PMTPixmapWidget::PMTPixmapWidget(QWidget *par):QWidget(par)
   ,m_brushBackground(QColor(208,206,206))
@@ -14,6 +15,8 @@ PMTPixmapWidget::PMTPixmapWidget(QWidget *par):QWidget(par)
   ,m_clickActionMode(ClickShowPicture)
   ,m_firstClickTime(QDateTime::currentDateTime())
   ,m_isSel(false)
+  ,m_xr(25)
+  ,m_yr(25)
 {
     setFocusPolicy(Qt::ClickFocus);
     setMouseTracking(true);
@@ -22,6 +25,9 @@ PMTPixmapWidget::PMTPixmapWidget(QWidget *par):QWidget(par)
     setHoverBorderColor(QColor(102,207,255));
     setSelBorderColor(QColor(245,18,67));
     setRoundRatio(5);
+    QSettings settings("PictureMemTrain.ini", QSettings::IniFormat);
+    m_xr = settings.value("ui/xRnd",25).toInt();
+    m_yr = settings.value("ui/yRnd",25).toInt();
 }
 
 
@@ -79,8 +85,8 @@ void PMTPixmapWidget::paintEvent(QPaintEvent *e)
     painter.setPen(pen);
     //绘制边框
     QRect r = rect().adjusted(m_borderWidth,m_borderWidth,-m_borderWidth,-m_borderWidth);
-    int xRnd = 25;
-    int yRnd = 25;
+    int xRnd = m_xr;
+    int yRnd = m_yr;
     painter.drawRoundedRect(r,xRnd,yRnd,Qt::RelativeSize);
     //计算绘制图片的区域
     switch(m_viewMode)
@@ -100,6 +106,7 @@ void PMTPixmapWidget::paintEvent(QPaintEvent *e)
     default:
         break;
     }
+    painter.drawRoundedRect(r,xRnd,yRnd,Qt::RelativeSize);
 }
 
 void PMTPixmapWidget::paintViewPicture(QPainter &painter, const QRect &rect, int xRnd, int yRnd)
@@ -303,6 +310,10 @@ const QPixmap &PMTPixmapWidget::getPixmap() const
 void PMTPixmapWidget::setPixmap(const QPixmap &pixmap,const QString& name)
 {
     m_pixmap = pixmap;
+    if(m_pixmap.isNull())
+    {
+        qDebug() << "PMTPixmapWidget::setPixmap is null:" << name;
+    }
     setWindowTitle(name);
     repaint();
 }

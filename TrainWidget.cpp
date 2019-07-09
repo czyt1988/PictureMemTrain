@@ -34,11 +34,13 @@ TrainWidget::TrainWidget(QWidget *parent) :
     QSettings settings("PictureMemTrain.ini", QSettings::IniFormat);
     m_borderWidth = settings.value("paint/borderWidth",5).toUInt();
     QFont f = font();
-    f.setFamily(settings.value("ui/labelIllustrationFontName=",QStringLiteral("微软雅黑")).toString());
+    f.setFamily(settings.value("ui/labelIllustrationFontName",QStringLiteral("微软雅黑")).toString());
     f.setPointSize(settings.value("ui/labelIllustrationFontSize",28).toInt());
     f.setBold(settings.value("ui/labelIllustrationFontBolt",false).toBool());
     m_OKNOButtonFactor = settings.value("ui/OKNOButtonFactor",10).toInt();
     m_OKNOButtonMaxWidth = settings.value("ui/OKNOButtonMaxWidth",150).toInt();
+    m_hspan = settings.value("ui/hspan",15).toInt();
+    m_vspan = settings.value("ui/vspan",15).toInt();
     m_isAutoCheckOrderTest = settings.value("interaction/isAutoCheckOrderTest",true).toBool();
     ui->labelIllustration->setFont(f);
     m_controller = new TrainController(this);
@@ -232,8 +234,13 @@ void TrainWidget::setPictureVisible(bool visible)
 void TrainWidget::recalcSize()
 {
     //计算离上下的总间距
+    int labelH = 10;
+    if(ui->label->isVisible())
+    {
+        labelH = ui->label->height();
+    }
     int v = (getPicSize().height() * m_controller->getYnum()) + (getVspan() * (m_controller->getYnum() - 1));
-    m_topleftPoint.ry() = ((height() - v - ui->label->height()) / 2)+ui->label->height();
+    m_topleftPoint.ry() = ((height() - v - labelH) / 2)+labelH;
     int h = (getPicSize().width() * m_controller->getXnum()) + (getHspan() * (m_controller->getXnum()-1));
     m_topleftPoint.rx() = (width() - h) / 2;
 
@@ -241,7 +248,12 @@ void TrainWidget::recalcSize()
 
 QSize TrainWidget::calcPrefectSize() const
 {
-    int h = (height()-ui->label->height()) / m_controller->getYnum();
+    int labelH = 10;
+    if(ui->label->isVisible())
+    {
+        labelH = ui->label->height();
+    }
+    int h = (height()-labelH) / m_controller->getYnum();
     int w = width() / m_controller->getXnum();
     int min = qMin(h,w);
     min = min - qMax(m_hspan,m_vspan);
@@ -624,6 +636,7 @@ void TrainWidget::onFinish()
     }
     else
     {
+        m_controller->removeAndResetPicture();
         emit finish(getTrainType());
     }
 }
@@ -814,19 +827,27 @@ void TrainWidget::on_pushButtonSure_clicked()
             m_controller->appendOrderMemTestRecord(m_orderTestSelectPicNames[i]);
         }
         ui->label->show();
+        QResizeEvent e(size(),size());
+        QApplication::sendEvent(this,&e);
         ui->label->setAlignment(Qt::AlignVCenter|Qt::AlignHCenter);
         QFont f = font();
         f.setPixelSize(70);
         ui->label->setFont(f);
-        QString des;
         QList<bool> ores = m_controller->orderMemTestResult();
+        bool isRigth = true;
         for(int i=0;i<ores.size();++i)
         {
-            des += tr("%1、结果:%2 ; ").arg(i+1).arg(ores[i] ? tr("正确") : tr("错误"));
+            isRigth &= ores[i];
         }
+        QString des;
+        des = isRigth ? tr("结果正确") : tr("结果错误");
         ui->label->setText(des);
+        this->ui->pushButtonSure->setEnabled(false);
         QTimer::singleShot(2000,this,[this](){
+            this->ui->pushButtonSure->setEnabled(true);
             this->ui->label->hide();
+            QResizeEvent e(size(),size());
+            QApplication::sendEvent(this,&e);
             this->setToLocationMemTestType();
             this->ui->pushButtonNo->show();
             this->ui->pushButtonOK->show();

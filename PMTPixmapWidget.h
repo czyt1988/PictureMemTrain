@@ -110,6 +110,8 @@ private:
     QDateTime m_firstClickTime;
     bool m_isSel;///< 标记是否选中
     int m_id;
+    int m_xr;
+    int m_yr;
 };
 
 #endif // PMTPIXMAPWIDGET_H
