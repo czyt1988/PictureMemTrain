@@ -27,6 +27,7 @@ public:
     void setExpNum(const QString& v);
     void setAge(const QString& v);
     void setShortName(const QString& v);
+    void setGender(bool isMale);
 
     PMT::TrainType getTrainType() const;
     void setTrainType(const PMT::TrainType &trainType, const MemRecordData &mr = MemRecordData());

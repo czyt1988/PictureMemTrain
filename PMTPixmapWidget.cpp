@@ -280,7 +280,7 @@ void PMTPixmapWidget::mousePressEvent(QMouseEvent *e)
             emit finishPictureMem(windowTitle(),m_firstClickTime,QDateTime::currentDateTime());
         }
     }
-
+    repaint();
 }
 
 

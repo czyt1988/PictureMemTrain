@@ -12,12 +12,21 @@ class LoginWidget : public QWidget
     Q_OBJECT
 
 public:
+    /**
+     * @brief 性别
+     */
+    enum Gender{
+        Male, ///< 男
+        Female ///< 女
+    };
+
     explicit LoginWidget(QWidget *parent = nullptr);
     ~LoginWidget();
     QString getMatchingNum() const;
     QString getExpNum() const;
     QString getAge() const;
     QString getShortName() const;
+    Gender getGender() const;
 signals:
     void ok();
 private slots:

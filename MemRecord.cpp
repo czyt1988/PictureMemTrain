@@ -92,11 +92,11 @@ QList<int> MemRecord::findRowsByMatchNum(QXlsx::Document &excel, const QString &
     }
     return res;
 }
-#define COL_Table 50
-#define COL_Order 51
-#define COL_4_1 5
-#define COL_5_1 17
-#define COL_6_1 32
+#define COL_Table 135
+#define COL_Order 136
+#define COL_4_1 6
+#define COL_5_1 44
+#define COL_6_1 87
 bool MemRecord::loadOrders(QXlsx::Document &excel, int row, QList<int> &res, QString *errInfo)
 {
     QString info;

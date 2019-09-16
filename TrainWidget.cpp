@@ -86,6 +86,11 @@ void TrainWidget::setShortName(const QString &v)
     m_controller->setShortName(v);
 }
 
+void TrainWidget::setGender(bool isMale)
+{
+    m_controller->setGender(isMale ? TrainController::Male : TrainController::Female);
+}
+
 PMT::TrainType TrainWidget::getTrainType() const
 {
     return m_trainType;
@@ -98,7 +103,7 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType,const MemRecordDa
     m_currentClicked = nullptr;
     m_trainType = trainType;
     int trainPicCount = 3;
-    int startTestIndex = 0;
+    int notTestCount = 0;
     m_memRecord = mr;
     m_autoRunMemRecordDataIndex = 0;
     m_autoRunOneTrainRecordDataIndex = 0;
@@ -106,11 +111,11 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType,const MemRecordDa
     {
     case PMT::TestType1:
         trainPicCount = 2;
-        startTestIndex = 0;
+        notTestCount = 0;
         break;
     case PMT::TestType2:
         trainPicCount = 2;
-        startTestIndex = 0;
+        notTestCount = 0;
         break;
     case PMT::FormalType1:
     case PMT::FormalType2:
@@ -129,21 +134,21 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType,const MemRecordDa
                 m_trainOrder.append(qMakePair(mr.m_selectData[i].m_order,mr.m_selectData[i].m_order - 3));
             }
             trainPicCount = m_trainOrder.first().first;
-            startTestIndex = m_trainOrder.first().second;
+            notTestCount = m_trainOrder.first().second;
         }
         else
         {
             m_trainOrder = PMT::TrainInfo().getTaskList();
             m_trainOrderIndex = 0;
             trainPicCount = m_trainOrder.first().first;
-            startTestIndex = m_trainOrder.first().second;
+            notTestCount = m_trainOrder.first().second;
         }
         break;
     default:
         break;
     }
     qDebug() << m_trainOrder;
-    m_controller->makeProject(trainPicCount,startTestIndex);
+    m_controller->makeProject(trainPicCount,notTestCount);
     //重置图片
     resetPictureInGroup1();
     if(mr.isValid)

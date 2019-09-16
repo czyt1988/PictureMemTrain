@@ -21,10 +21,19 @@ public:
         ,Group2
         ,Group3
     };
+    /**
+     * @brief 性别
+     */
+    enum Gender
+    {
+        Male, ///< 男
+        Female ///< 女
+    };
+
     TrainController(QObject* par = nullptr);
     static QString getPicResourcesPath();
     //生成一个训练方案
-    void makeProject(int tarinPicCount, int startTestPicIndex);
+    void makeProject(int tarinPicCount, int notTestCount);
     //获取图片
     QPixmap getPixmap(uint index,GroupType group = Group1) const;
     QPixmap getPixmap(const QString& name) const;
@@ -34,6 +43,7 @@ public:
     void setExpNum(const QString& v);
     void setAge(const QString& v);
     void setShortName(const QString& v);
+    void setGender(Gender gender);
     //
     int getXnum() const;
     void setXnum(int xnum);
@@ -91,10 +101,11 @@ private:
     QString m_expNum;
     QString m_age;
     QString m_shortName;
+    Gender m_gender;
     int m_xnum;
     int m_ynum;
     int m_totalTrainPicCount;///< 记录训练的图片个数
-    int m_startTestPicIndex;///< 此变量记录开始用于测试的所有，如果是0，代表从第一张图片开始进行验证顺序和位置测试，也就是训练5张，顺序和位置测试也测试5张，如果定义为2，就是从索引2开始，也就是记忆5张，顺序和位置测试3张
+    int m_picNotTestCount;///< 此变量记录不参与测试的图片，如果是0，代表从第一张图片开始进行验证顺序和位置测试，也就是训练5张，顺序和位置测试也测试5张，如果定义为2，就是保留最后2张不测试，也就是记忆5张，顺序和位置测试3张
     bool m_isFinishSelPic;///< 标记选择图片阶段结束
     bool m_isFinishOrderMemTest;///< 标记图片顺序记忆阶段结束
     bool m_isFinishLocationMemTest;///< 标记位置记忆阶段结束

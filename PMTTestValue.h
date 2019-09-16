@@ -28,6 +28,7 @@ public:
     int realLocation;///< 真实的位置
     int showLocation;///< 显示的位置
     bool isCorrect() const;
+    bool userSelect;///< 用户选择的结果
 };
 
 #endif // PMTTESTVALUE_H

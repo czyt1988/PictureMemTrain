@@ -45,7 +45,6 @@ ZipReader::~ZipReader()
 {
 
 }
-
 void ZipReader::init()
 {
     QVector<QZipReader::FileInfo> allFiles = m_reader->fileInfoList();

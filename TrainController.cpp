@@ -16,7 +16,7 @@ TrainController::TrainController(QObject *par):QObject(par)
   ,m_xnum(4)
   ,m_ynum(4)
   ,m_totalTrainPicCount(3)
-  ,m_startTestPicIndex(0)
+  ,m_picNotTestCount(0)
   ,m_isFinishSelPic(false)
   ,m_isFinishOrderMemTest(false)
   ,m_isFinishLocationMemTest(false)
@@ -38,28 +38,38 @@ QString TrainController::getPicResourcesPath()
 void TrainController::setMatchingNum(const QString &v)
 {
     m_matchingNum = v;
+    qInfo() << tr("匹配编号:") << v;
 }
 
 void TrainController::setExpNum(const QString &v)
 {
     m_expNum = v;
+    qInfo() << tr("实验编号:") << v;
 }
 
 void TrainController::setAge(const QString &v)
 {
     m_age = v;
+    qInfo() << tr("年龄:") << v;
 }
 
 void TrainController::setShortName(const QString &v)
 {
     m_shortName = v;
+    qInfo() << tr("姓名:") << v;
 }
-void TrainController::makeProject(int tarinPicCount,int startTestPicIndex)
+
+void TrainController::setGender(TrainController::Gender gender)
 {
-    qDebug() << "makeProject tarinPicCount:" << tarinPicCount << " startTestPicIndex:"<<startTestPicIndex;
+   m_gender = gender;
+   qInfo() << tr("性别:") << ((gender == TrainController::Male) ? tr("男") : tr("女"));
+}
+void TrainController::makeProject(int tarinPicCount,int notTestCount)
+{
+    qInfo() << tr("开始构建测试图片-- 图片数：") << tarinPicCount << " notTestCount:"<< notTestCount;
     resetTrainPram();
     m_totalTrainPicCount = tarinPicCount;
-    m_startTestPicIndex = startTestPicIndex;
+    m_picNotTestCount = notTestCount;
     buildPicGroup2();
 }
 
@@ -116,18 +126,18 @@ void TrainController::buildPicGroup3()
 {
     m_picNameShowGroup3.clear();
     //测试的个数
-    int totalLocalTestCount = m_totalTrainPicCount - m_startTestPicIndex;
+    int totalLocalTestCount = m_totalTrainPicCount - m_picNotTestCount;
     //
     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
     QSet<int> locationSet;
     for(int i=0;i<totalLocalTestCount;++i)
     {
-        PMTTestSelRecord& pmtrec = m_selRecords[m_startTestPicIndex+i];
+        PMTTestSelRecord& pmtrec = m_selRecords[m_picNotTestCount+i];
         locationSet.insert(pmtrec.location);
     }
     for(int i=0;i<totalLocalTestCount;++i)
     {
-        PMTTestSelRecord& pmtrec = m_selRecords[m_startTestPicIndex+i];
+        PMTTestSelRecord& pmtrec = m_selRecords[m_picNotTestCount+i];
         int loc = floor((qrand() / float(RAND_MAX))*(m_xnum*m_ynum));
         while(locationSet.contains(loc))
         {
@@ -207,6 +217,7 @@ void TrainController::randSelect(const QList<QString> &org, QList<QString> &res,
     if(tmpOrg.size() < len)
     {
         qDebug() << "pic size invalid";
+        return;
     }
     QSet<QString> tmpRes;
     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
@@ -255,18 +266,19 @@ bool TrainController::setPicNameShowGroup1(const QList<QString> &picNameShowGrou
 #define COL_ExpNum 1
 #define COL_ShortName 2
 #define COL_Age 3
-#define COL_ExpDate 4
-#define COL_4_1 5
-#define COL_4_1_OrderTest 25
-#define COL_4_1_LocationTest 31
-#define COL_5_1 43
-#define COL_5_1_OrderTest 68
-#define COL_5_1_LocationTest 74
-#define COL_6_1 86
-#define COL_6_1_OrderTest 116
-#define COL_6_1_LocationTest 122
-#define COL_PIC_LIST 134
-#define COL_PIC_LEN_ORDER 135
+#define COL_Gender 4
+#define COL_ExpDate 5
+#define COL_4_1 6
+#define COL_4_1_OrderTest 26
+#define COL_4_1_LocationTest 32
+#define COL_5_1 44
+#define COL_5_1_OrderTest 69
+#define COL_5_1_LocationTest 75
+#define COL_6_1 87
+#define COL_6_1_OrderTest 117
+#define COL_6_1_LocationTest 123
+#define COL_PIC_LIST 135
+#define COL_PIC_LEN_ORDER 136
 void TrainController::saveResult()
 {
     QXlsx::Document xlsx(QApplication::applicationDirPath() + QDir::separator() + "output/out.xlsx");
@@ -288,10 +300,12 @@ void TrainController::saveResult()
     }
 
     qDebug() << "save expNum:" <<  m_expNum << " shortName:" << m_shortName<<" age:"<<m_age
+             << " gender:" << m_gender
              << " m_firstNullRow:" << m_firstNullRow;
     xlsx.write(m_firstNullRow,COL_ExpNum,m_expNum);
     xlsx.write(m_firstNullRow,COL_ShortName,m_shortName);
     xlsx.write(m_firstNullRow,COL_Age,m_age);
+    xlsx.write(m_firstNullRow,COL_Gender,m_gender == Male ? tr("男") : tr("女"));
     xlsx.write(m_firstNullRow,COL_ExpDate,QDate::currentDate());
     int colBias = COL_4_1;
     int orderCol = COL_4_1_OrderTest;
@@ -342,7 +356,7 @@ void TrainController::saveResult()
     {
         xlsx.write(m_firstNullRow,locationCol+i*4,m_picNameShowGroup3[i].picName);
         xlsx.write(m_firstNullRow,locationCol+i*4+1,m_picNameShowGroup3[i].realLocation);
-        xlsx.write(m_firstNullRow,locationCol+i*4+2,m_picNameShowGroup3[i].isCorrect());
+        xlsx.write(m_firstNullRow,locationCol+i*4+2,m_picNameShowGroup3[i].userSelect);
         xlsx.write(m_firstNullRow,locationCol+i*4+3,m_locationMemTestResult[i]);
     }
     //写入图片序列
@@ -410,7 +424,9 @@ void TrainController::removeAndResetPicture()
     {
         if(t <= m_nameToPic.size())
         {
+            //从图片列表中移除已经显示过的图片
             m_nameToPic.remove(m_picNameShowGroup1[i]);
+            //从图片名列表中移除已经显示过的图片名
             m_names.removeOne(m_picNameShowGroup1[i]);
         }
     }
@@ -430,7 +446,7 @@ QList<LocationTestValue> TrainController::getLocationTestValues() const
 
 int TrainController::getStartTestPicIndex() const
 {
-    return m_startTestPicIndex;
+    return m_picNotTestCount;
 }
 
 bool TrainController::isFinishOrderMemTest() const
@@ -450,7 +466,7 @@ int TrainController::getSelPicCount() const
 
 int TrainController::getMaxSelPicCount() const
 {
-    return m_totalTrainPicCount-m_startTestPicIndex;
+    return m_totalTrainPicCount-m_picNotTestCount;
 }
 
 
@@ -471,10 +487,12 @@ void TrainController::appendOneSelRecord(const PMTTestSelRecord &r)
 void TrainController::appendOrderMemTestRecord(const QString &name)
 {
     m_orderMemSelName.append(name);
-    Q_ASSERT(m_startTestPicIndex+m_orderMemSelName.size()-1 < m_selRecords.size());
+    Q_ASSERT(m_picNotTestCount+m_orderMemSelName.size()-1 < m_selRecords.size());
     //判断结果
-    m_orderMemTestResult.append(m_selRecords[m_startTestPicIndex+m_orderMemSelName.size()-1].picName == name);
-    m_isFinishOrderMemTest = (m_orderMemSelName.size() >= (m_totalTrainPicCount-m_startTestPicIndex));
+    m_orderMemTestResult.append(m_selRecords[m_orderMemSelName.size()-1].picName == name);
+    qInfo() << tr("记录顺序测试结果：") << m_orderMemTestResult.back() << " 选择的图片为 " << name
+            << " 正确的图片为 "<< m_selRecords[m_picNotTestCount+m_orderMemSelName.size()-1].picName;
+    m_isFinishOrderMemTest = (m_orderMemSelName.size() >= (m_totalTrainPicCount-m_picNotTestCount));
 }
 
 void TrainController::appendLocationMemTestRecord(bool selres)
@@ -482,8 +500,9 @@ void TrainController::appendLocationMemTestRecord(bool selres)
     int index = m_locationMemTestResult.size();
     Q_ASSERT(index < m_picNameShowGroup3.size());
     m_locationMemTestResult.append(selres == m_picNameShowGroup3[index].isCorrect());
+    m_picNameShowGroup3[index].userSelect = selres;
     qDebug() << "loacation test " << m_locationMemTestResult.size() << " :" << m_locationMemTestResult.back();
-    m_isFinishLocationMemTest = (m_locationMemTestResult.size() >= (m_totalTrainPicCount-m_startTestPicIndex));
+    m_isFinishLocationMemTest = (m_locationMemTestResult.size() >= (m_totalTrainPicCount-m_picNotTestCount));
     if(m_isFinishLocationMemTest)
     {
         emit finish();
@@ -504,7 +523,7 @@ void TrainController::popOrderMemTestRecord()
 {
     m_orderMemSelName.pop_back();
     m_orderMemTestResult.pop_back();
-    m_isFinishOrderMemTest = (m_orderMemSelName.size() >= (m_totalTrainPicCount-m_startTestPicIndex));
+    m_isFinishOrderMemTest = (m_orderMemSelName.size() >= (m_totalTrainPicCount-m_picNotTestCount));
 }
 
 int TrainController::getTotalTrainPicCount() const

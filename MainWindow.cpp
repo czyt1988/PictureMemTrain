@@ -108,6 +108,7 @@ void MainWindow::onLoginWidgetOK()
     m_trainWidget->setExpNum(m_loginWidget->getExpNum());
     m_trainWidget->setShortName(m_loginWidget->getShortName());
     m_trainWidget->setMatchingNum(v);
+    m_trainWidget->setGender(m_loginWidget->getGender() == LoginWidget::Male);
     if(!v.isEmpty())
     {
         QString err;

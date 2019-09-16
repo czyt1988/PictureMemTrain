@@ -34,6 +34,11 @@ QString LoginWidget::getShortName() const
     return ui->lineEditShortName->text();
 }
 
+LoginWidget::Gender LoginWidget::getGender() const
+{
+   return ((ui->radioButtonMale->isChecked()) ? Male : Female);
+}
+
 void LoginWidget::on_pushButtonOK_clicked()
 {
     emit ok();
