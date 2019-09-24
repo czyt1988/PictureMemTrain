@@ -110,12 +110,12 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType,const MemRecordDa
     switch(trainType)
     {
     case PMT::TestType1:
-        trainPicCount = 2;
-        notTestCount = 0;
+        trainPicCount = 4;
+        notTestCount = 1;
         break;
     case PMT::TestType2:
-        trainPicCount = 2;
-        notTestCount = 0;
+        trainPicCount = 4;
+        notTestCount = 1;
         break;
     case PMT::FormalType1:
     case PMT::FormalType2:

@@ -279,6 +279,7 @@ bool TrainController::setPicNameShowGroup1(const QList<QString> &picNameShowGrou
 #define COL_6_1_LocationTest 123
 #define COL_PIC_LIST 135
 #define COL_PIC_LEN_ORDER 136
+#define COL_MATCH_NUM 137
 void TrainController::saveResult()
 {
     QXlsx::Document xlsx(QApplication::applicationDirPath() + QDir::separator() + "output/out.xlsx");
@@ -307,6 +308,7 @@ void TrainController::saveResult()
     xlsx.write(m_firstNullRow,COL_Age,m_age);
     xlsx.write(m_firstNullRow,COL_Gender,m_gender == Male ? tr("男") : tr("女"));
     xlsx.write(m_firstNullRow,COL_ExpDate,QDate::currentDate());
+    xlsx.write(m_firstNullRow,COL_MATCH_NUM,m_matchingNum);
     int colBias = COL_4_1;
     int orderCol = COL_4_1_OrderTest;
     int locationCol = COL_4_1_LocationTest;
@@ -355,7 +357,7 @@ void TrainController::saveResult()
     for(int i=0;i<m_locationMemTestResult.size();++i)
     {
         xlsx.write(m_firstNullRow,locationCol+i*4,m_picNameShowGroup3[i].picName);
-        xlsx.write(m_firstNullRow,locationCol+i*4+1,m_picNameShowGroup3[i].realLocation);
+        xlsx.write(m_firstNullRow,locationCol+i*4+1,m_picNameShowGroup3[i].showLocation+1);
         xlsx.write(m_firstNullRow,locationCol+i*4+2,m_picNameShowGroup3[i].userSelect);
         xlsx.write(m_firstNullRow,locationCol+i*4+3,m_locationMemTestResult[i]);
     }
@@ -489,7 +491,7 @@ void TrainController::appendOrderMemTestRecord(const QString &name)
     m_orderMemSelName.append(name);
     Q_ASSERT(m_picNotTestCount+m_orderMemSelName.size()-1 < m_selRecords.size());
     //判断结果
-    m_orderMemTestResult.append(m_selRecords[m_orderMemSelName.size()-1].picName == name);
+    m_orderMemTestResult.append(m_selRecords[m_picNotTestCount + m_orderMemSelName.size()-1].picName == name);
     qInfo() << tr("记录顺序测试结果：") << m_orderMemTestResult.back() << " 选择的图片为 " << name
             << " 正确的图片为 "<< m_selRecords[m_picNotTestCount+m_orderMemSelName.size()-1].picName;
     m_isFinishOrderMemTest = (m_orderMemSelName.size() >= (m_totalTrainPicCount-m_picNotTestCount));

@@ -121,6 +121,7 @@ private:
     int m_firstNullRow;///< 第一组有内容的行
     QString m_xlsxIntvTimeFormat;///< 定义输出excel的时间间隔的格式,默认mm:ss.000
     QString m_xlsxDateTimeFormat;///< 定义输出excel的日期的格式 默认为yyyy-mm-dd hh:mm:ss.ms
+    bool m_isMatchTest;///< 标记是否是匹配测试，如果是匹配测试，测试模式是间隔1秒跳转
 };
 
 #endif // TRAINCONTROLLER_H
