@@ -112,10 +112,27 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType,const MemRecordDa
     case PMT::TestType1:
         trainPicCount = 4;
         notTestCount = 1;
+        if(mr.isValid)
+        {
+            QString err;
+            if(!m_controller->setPicNameShowGroup1(mr.m_picNameShowGroup1,&err))
+            {
+                QMessageBox::warning(this,tr("警告"),QString("匹配内容中，以下图片无法找到：%1请检查匹配测试的excel").arg(err));
+            }
+        }
         break;
     case PMT::TestType2:
         trainPicCount = 4;
         notTestCount = 1;
+        if(mr.isValid)
+        {
+            QString err;
+            if(!m_controller->setPicNameShowGroup1(mr.m_picNameShowGroup1,&err))
+            {
+                QMessageBox::warning(this,tr("警告"),QString("匹配内容中，以下图片无法找到：%1请检查匹配测试的excel").arg(err));
+
+            }
+        }
         break;
     case PMT::FormalType1:
     case PMT::FormalType2:
@@ -148,7 +165,9 @@ void TrainWidget::setTrainType(const PMT::TrainType &trainType,const MemRecordDa
         break;
     }
     qDebug() << m_trainOrder;
-    m_controller->makeProject(trainPicCount,notTestCount);
+    if(!mr.isValid)
+        m_controller->buildPicGroup1();
+    m_controller->makeProject(trainPicCount,notTestCount,!mr.isValid);
     //重置图片
     resetPictureInGroup1();
     if(mr.isValid)
@@ -613,7 +632,7 @@ void TrainWidget::onFinish()
             int startTestIndex = m_trainOrder[m_trainOrderIndex].second;
             m_currentClicked = nullptr;
             m_orderTestSelectPicNames.clear();
-            m_controller->makeProject(trainPicCount,startTestIndex);
+            m_controller->makeProject(trainPicCount,startTestIndex,!m_memRecord.isValid);
             //重置图片
             resetPictureInGroup1();
             if(m_memRecord.isValid)
@@ -757,6 +776,7 @@ void TrainWidget::onAutoRunTimeout()
         int intv = rd.m_intv[m_autoRunOneTrainRecordDataIndex];
         m_picList[index]->showDelayDisplayBlankSpace(intv);
         ++m_autoRunOneTrainRecordDataIndex;
+        qDebug() << "auto show:m_picList["<<index<<"] intv:" << intv;
         //把其余设置为可选，把这个设置为不可选
         PMTTestSelRecord ptr;
         ptr.picName = m_picList[index]->windowTitle();

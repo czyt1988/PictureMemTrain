@@ -33,7 +33,7 @@ public:
     TrainController(QObject* par = nullptr);
     static QString getPicResourcesPath();
     //生成一个训练方案
-    void makeProject(int tarinPicCount, int notTestCount);
+    void makeProject(int tarinPicCount, int notTestCount, bool isbuildgroup1=true);
     //获取图片
     QPixmap getPixmap(uint index,GroupType group = Group1) const;
     QPixmap getPixmap(const QString& name) const;
@@ -77,11 +77,11 @@ public:
 
     //设置图片序列
     bool setPicNameShowGroup1(const QList<QString> &picNameShowGroup1, QString *info);
-
+    static QSet<QString> getPicNamesSet();
+    void buildPicGroup1();
 private:
     void initResources();
     //建立图片组
-    void buildPicGroup1();
     void buildPicGroup2();
     void buildPicGroup3();
     //随机循环位交换法进行洗牌

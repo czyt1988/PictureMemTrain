@@ -25,6 +25,7 @@ private:
     void initWidget();
     void showLoginPage();
     void showTrainSelPage();
+    void makeTestMemRecord();
 private slots:
     Q_SLOT void onPushBottonQuitClicked();
     Q_SLOT void onPushBottonBackClicked();

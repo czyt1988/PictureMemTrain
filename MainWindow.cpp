@@ -5,8 +5,10 @@
 #include "LoginWidget.h"
 #include "TrainTypeSelectWidget.h"
 #include "TrainWidget.h"
+#include "TrainController.h"
 #include <QDir>
 #include <QSettings>
+#include <QDebug>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -78,6 +80,13 @@ void MainWindow::showTrainSelPage()
     ui->pushButtonBack->show();
     ui->stackedWidget->setCurrentWidget(m_trainSelWidget);
 }
+/**
+ * @brief 生成测试的记录集
+ */
+void MainWindow::makeTestMemRecord()
+{
+
+}
 
 void MainWindow::onPushBottonQuitClicked()
 {
@@ -119,6 +128,58 @@ void MainWindow::onLoginWidgetOK()
             return;
         }
         m_recordDatas = mr.getRecordDatas();
+        for(int i=0;i<m_recordDatas.size();++i)
+        {
+            qDebug() << "load match excel success:"<<m_recordDatas[i].m_picNameShowGroup1;
+        }
+        QSet<QString> names = TrainController::getPicNamesSet();
+        for(int i=0;i<m_recordDatas.size();++i)
+        {
+            names -= m_recordDatas[i].m_picNameShowGroup1.toSet();
+        }
+        qDebug() << "pics when -= match pic:" << names;
+        //生成测试的record
+        QSettings settings("PictureMemTrain.ini", QSettings::IniFormat);
+        int picshowintv = settings.value("interaction/picInTestShowTime",1020).toInt();
+        MemRecordData d1;
+        d1.isValid = true;
+        for (int i=0;i<16;++i)
+        {
+            d1.m_picNameShowGroup1.append(*(names.begin()+i));
+        }
+        names -= d1.m_picNameShowGroup1.toSet();
+
+        OneTrainRecordData trd;
+        trd.m_intv = QList<int>() << picshowintv << picshowintv << picshowintv << picshowintv;
+        trd.m_names.append(d1.m_picNameShowGroup1[2]);
+        trd.m_location.append(2);
+        trd.m_names.append(d1.m_picNameShowGroup1[5]);
+        trd.m_location.append(5);
+        trd.m_names.append(d1.m_picNameShowGroup1[11]);
+        trd.m_location.append(11);
+        trd.m_names.append(d1.m_picNameShowGroup1[9]);
+        trd.m_location.append(9);
+        d1.m_selectData.append(trd);
+        m_recordDatas.append(d1);
+
+        d1 = MemRecordData();
+        d1.isValid = true;
+        for (int i=0;i<16;++i)
+        {
+            d1.m_picNameShowGroup1.append(*(names.begin()+i));
+        }
+        trd = OneTrainRecordData();
+        trd.m_intv = QList<int>() << picshowintv << picshowintv << picshowintv << picshowintv;
+        trd.m_names.append(d1.m_picNameShowGroup1[4]);
+        trd.m_location.append(4);
+        trd.m_names.append(d1.m_picNameShowGroup1[7]);
+        trd.m_location.append(7);
+        trd.m_names.append(d1.m_picNameShowGroup1[14]);
+        trd.m_location.append(14);
+        trd.m_names.append(d1.m_picNameShowGroup1[10]);
+        trd.m_location.append(10);
+        d1.m_selectData.append(trd);
+        m_recordDatas.append(d1);
     }
     else {
         m_recordDatas.clear();
@@ -139,8 +200,13 @@ void MainWindow::onTrainTypeSelected(PMT::TrainType type)
     case PMT::FormalType3:
         m_trainWidget->setTrainType(type,(m_recordDatas.size() != 0) ? m_recordDatas[2] : MemRecordData());
         break;
+    case PMT::TestType1:
+        m_trainWidget->setTrainType(type,(m_recordDatas.size() != 0) ? m_recordDatas[3] : MemRecordData());
+        break;
+    case PMT::TestType2:
+        m_trainWidget->setTrainType(type,(m_recordDatas.size() != 0) ? m_recordDatas[4] : MemRecordData());
+        break;
     default:
-        m_trainWidget->setTrainType(type);
         break;
     }
     ui->stackedWidget->setCurrentWidget(m_trainWidget);

@@ -28,7 +28,6 @@ TrainController::TrainController(QObject *par):QObject(par)
     m_xlsxIntvTimeFormat = settings.value("output/xlsxIntvTimeFormat","mm:ss.000").toString();
     m_xlsxDateTimeFormat = settings.value("output/xlsxDateTimeFormat","yyyy-mm-dd hh:mm:ss.ms").toString();
     initResources();
-    buildPicGroup1();
 }
 
 QString TrainController::getPicResourcesPath()
@@ -64,12 +63,16 @@ void TrainController::setGender(TrainController::Gender gender)
    m_gender = gender;
    qInfo() << tr("性别:") << ((gender == TrainController::Male) ? tr("男") : tr("女"));
 }
-void TrainController::makeProject(int tarinPicCount,int notTestCount)
+void TrainController::makeProject(int tarinPicCount,int notTestCount,bool isbuildgroup1)
 {
     qInfo() << tr("开始构建测试图片-- 图片数：") << tarinPicCount << " notTestCount:"<< notTestCount;
     resetTrainPram();
     m_totalTrainPicCount = tarinPicCount;
     m_picNotTestCount = notTestCount;
+    if (isbuildgroup1)
+    {
+        //buildPicGroup1();
+    }
     buildPicGroup2();
 }
 
@@ -262,6 +265,21 @@ bool TrainController::setPicNameShowGroup1(const QList<QString> &picNameShowGrou
     return true;
 }
 
+QSet<QString> TrainController::getPicNamesSet()
+{
+    QSet<QString> res;
+    QString picPath = getPicResourcesPath();
+    QDir dir(picPath);
+    QFileInfoList il = dir.entryInfoList(QDir::Files);
+    foreach (const QFileInfo& fi, il) {
+        QPixmap p(fi.absoluteFilePath());
+        if(p.isNull())
+            continue;
+        res.insert(fi.baseName());
+    }
+    return res;
+}
+
 
 #define COL_ExpNum 1
 #define COL_ShortName 2
@@ -420,7 +438,7 @@ void TrainController::savePicTestOrder(const QList<int> &los)
 
 void TrainController::removeAndResetPicture()
 {
-    qDebug() << "brfore remove , pics count:" << m_names.size();
+    qDebug() << "brfore remove , pics count:" << m_names.size() << " will remove:" << m_picNameShowGroup1;
     int t = m_xnum*m_ynum;
     for(int i=0;i<m_picNameShowGroup1.size();++i)
     {
@@ -433,7 +451,7 @@ void TrainController::removeAndResetPicture()
         }
     }
     qDebug() << "after remove , pics count:" << m_names.size() <<"pics:" <<  m_names;
-    buildPicGroup1();
+    //buildPicGroup1();
 }
 
 bool TrainController::isFinishLocationMemTest() const
